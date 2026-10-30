@@ -27,13 +27,14 @@
     height: 100vh;
     height: 100dvh;
     -webkit-font-smoothing: antialiased;
+    touch-action: none;
   }
   .hidden { display: none !important; }
 
   /* Layout */
   #app {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 280px 1fr;
     height: 100%;
     width: 100%;
   }
@@ -55,6 +56,7 @@
   .sidebar-head {
     padding: 16px;
     border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
   }
   h1 {
     font-size: 1rem;
@@ -85,8 +87,8 @@
     border-bottom: 1px solid var(--border);
     color: var(--text-dim);
     font-family: var(--font);
-    font-size: 0.8rem;
-    padding: 12px 16px;
+    font-size: 0.75rem;
+    padding: 10px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -104,8 +106,8 @@
     padding-left: 14px;
   }
   .item-symbol {
-    font-size: 1rem;
-    width: 24px;
+    font-size: 0.9rem;
+    width: 20px;
     text-align: center;
   }
 
@@ -122,6 +124,9 @@
     width: 100%;
     height: 100%;
     cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
   }
   canvas:active { cursor: grabbing; }
 
@@ -133,21 +138,22 @@
   }
   .hud * { pointer-events: auto; }
 
-  /* Scale Bar (Bottom Left) */
+  /* Vertical Scale Bar (Bottom Left) */
   #scale-hud {
     bottom: 24px;
     left: 24px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: column-reverse; /* Grows upwards */
+    align-items: flex-start;
+    gap: 8px;
   }
   .scale-line {
-    height: 8px;
-    border-left: 1px solid var(--text);
-    border-right: 1px solid var(--text);
+    width: 8px;
+    height: 120px;
+    border-top: 1px solid var(--text);
     border-bottom: 1px solid var(--text);
-    width: 100px;
-    transition: width 0.1s;
+    border-left: 1px solid var(--text);
+    transition: height 0.1s;
   }
   .scale-text {
     font-size: 0.7rem;
@@ -155,7 +161,6 @@
     background: rgba(0,0,0,0.5);
     padding: 2px 4px;
     display: inline-block;
-    align-self: flex-start;
   }
 
   /* GO Button (Bottom Center) */
@@ -175,6 +180,7 @@
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
+    z-index: 10;
   }
   #go-btn:hover {
     background: var(--text);
@@ -270,6 +276,7 @@
   .stat-val {
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word;
   }
   .walk-actions {
     display: flex;
@@ -300,7 +307,7 @@
   <aside>
     <div class="sidebar-head">
       <h1>Walk to the Stars</h1>
-      <p id="tagline">Drag to pan. Scroll to zoom. Select a destination to visualise the true scale.</p>
+      <p id="tagline">Drag to pan. Scroll or pinch to zoom. Select a destination to visualise the true scale.</p>
     </div>
     <ul id="list"></ul>
   </aside>
@@ -362,24 +369,44 @@
   'use strict';
 
   const PACE = 5;               // km/h
-  const KEY  = 'walk-to-the-stars.walk.v3';
+  const KEY  = 'walk-to-the-stars.walk.v4';
 
-  // Distances and diameters in km.
+  // Distances (approx from Earth) and diameters in km.
   // Sorted by distance.
   const CATALOG = [
-    { id:'moon',      name:'The Moon',      symbol:'☽', dist:384400,      diam:3474,    desc:'Our closest neighbour.' },
-    { id:'venus',     name:'Venus',         symbol:'♀', dist:42000000,    diam:12104,   desc:'The hottest planet, wrapped in thick clouds.' },
-    { id:'mars',      name:'Mars',          symbol:'♂', dist:75000000,    diam:6779,    desc:'The red planet. Dust storms included.' },
-    { id:'mercury',   name:'Mercury',       symbol:'☿', dist:91500000,    diam:4879,    desc:'The smallest planet and the fastest orbiter.' },
-    { id:'halley',    name:'Halley’s Comet',symbol:'☄', dist:100000000,   diam:11,      desc:'A periodic comet that visits every ~76 years.' },
-    { id:'sun',       name:'The Sun',       symbol:'☀', dist:149597870,   diam:1392700, desc:'Eight light-minutes away. Bring sunscreen.' },
-    { id:'ceres',     name:'Ceres',         symbol:'⚳', dist:265050000,   diam:946,     desc:'The largest object in the asteroid belt.' },
-    { id:'jupiter',   name:'Jupiter',       symbol:'♃', dist:630000000,   diam:139820,  desc:'The giant of the solar system.' },
-    { id:'saturn',    name:'Saturn',        symbol:'♄', dist:1290000000,  diam:116460,  desc:'Famous for its rings — mostly ice and rock.' },
-    { id:'uranus',    name:'Uranus',        symbol:'♅', dist:2715000000,  diam:50724,   desc:'An ice giant tipped on its side.' },
-    { id:'neptune',   name:'Neptune',       symbol:'♆', dist:4350000000,  diam:49244,   desc:'The windiest planet.' },
-    { id:'pluto',     name:'Pluto',         symbol:'♇', dist:5760000000,  diam:2376,    desc:'A dwarf planet in the Kuiper Belt.' },
-  ];
+    { id:'moon',      name:'The Moon',      symbol:'☽', dist:384400,          diam:3474,    desc:'Our closest neighbour.' },
+    { id:'venus',     name:'Venus',         symbol:'♀', dist:42000000,        diam:12104,   desc:'The hottest planet, wrapped in thick clouds.' },
+    { id:'mars',      name:'Mars',          symbol:'♂', dist:75000000,        diam:6779,    desc:'The red planet. Dust storms included.' },
+    { id:'phobos',    name:'Phobos',        symbol:'🪨', dist:77000000,        diam:22,      desc:'The larger, inner moon of Mars.' },
+    { id:'deimos',    name:'Deimos',        symbol:'🪨', dist:78000000,        diam:12,      desc:'The smaller, outer moon of Mars.' },
+    { id:'mercury',   name:'Mercury',       symbol:'☿', dist:91500000,        diam:4879,    desc:'The smallest planet and the fastest orbiter.' },
+    { id:'halley',    name:'Halley’s Comet',symbol:'☄', dist:100000000,       diam:11,      desc:'A periodic comet that visits every ~76 years.' },
+    { id:'sun',       name:'The Sun',       symbol:'☀', dist:149597870,       diam:1392700, desc:'Eight light-minutes away. Bring sunscreen.' },
+    { id:'vesta',     name:'Vesta',         symbol:'🪨', dist:170000000,       diam:525,     desc:'One of the largest asteroids in the belt.' },
+    { id:'pallas',    name:'Pallas',        symbol:'🪨', dist:220000000,       diam:512,     desc:'A large asteroid with a highly inclined orbit.' },
+    { id:'ceres',     name:'Ceres',         symbol:'⚳', dist:265000000,       diam:946,     desc:'The largest object in the asteroid belt.' },
+    { id:'hygiea',    name:'Hygiea',        symbol:'🪨', dist:280000000,       diam:434,     desc:'The fourth-largest asteroid in the solar system.' },
+    { id:'jupiter',   name:'Jupiter',       symbol:'♃', dist:630000000,       diam:139820,  desc:'The giant of the solar system.' },
+    { id:'io',        name:'Io',            symbol:'🌋', dist:630000000,       diam:3643,    desc:'The most volcanically active body in the solar system.' },
+    { id:'europa',    name:'Europa',        symbol:'❄️', dist:630000000,       diam:3121,    desc:'An icy moon with a subsurface ocean.' },
+    { id:'ganymede',  name:'Ganymede',      symbol:'🌑', dist:630000000,       diam:5268,    desc:'The largest moon in the solar system.' },
+    { id:'callisto',  name:'Callisto',      symbol:'🌑', dist:630000000,       diam:4820,    desc:'A heavily cratered moon of Jupiter.' },
+    { id:'saturn',    name:'Saturn',        symbol:'♄', dist:1290000000,      diam:116460,  desc:'Famous for its rings — mostly ice and rock.' },
+    { id:'titan',     name:'Titan',         symbol:'🌫️', dist:1290000000,      diam:5150,    desc:'A moon with a thick atmosphere and liquid methane lakes.' },
+    { id:'enceladus', name:'Enceladus',     symbol:'❄️', dist:1290000000,      diam:504,     desc:'An icy moon shooting geysers of water into space.' },
+    { id:'uranus',    name:'Uranus',        symbol:'♅', dist:2715000000,      diam:50724,   desc:'An ice giant tipped on its side.' },
+    { id:'neptune',   name:'Neptune',       symbol:'♆', dist:4350000000,      diam:49244,   desc:'The windiest planet.' },
+    { id:'triton',    name:'Triton',        symbol:'❄️', dist:4350000000,      diam:2706,    desc:'Neptune’s largest moon, orbiting backwards.' },
+    { id:'pluto',     name:'Pluto',         symbol:'♇', dist:5760000000,      diam:2376,    desc:'A dwarf planet in the Kuiper Belt.' },
+    { id:'charon',    name:'Charon',        symbol:'🌑', dist:5760000000,      diam:1212,    desc:'Pluto’s largest moon, locked in a binary orbit.' },
+    { id:'haumea',    name:'Haumea',        symbol:'🥚', dist:6500000000,      diam:1632,    desc:'A dwarf planet shaped like an egg.' },
+    { id:'makemake',  name:'Makemake',      symbol:'🪨', dist:6800000000,      diam:1430,    desc:'A dwarf planet in the Kuiper Belt.' },
+    { id:'eris',      name:'Eris',          symbol:'🌑', dist:10100000000,     diam:2326,    desc:'The dwarf planet that caused Pluto’s demotion.' },
+    { id:'sedna',     name:'Sedna',         symbol:'🪨', dist:11400000000,     diam:1000,    desc:'A distant object in the scattered disc.' },
+    { id:'voyager',   name:'Voyager 1',     symbol:'🛰️', dist:24000000000,     diam:0.0037,  desc:'The most distant human-made object.' },
+    { id:'oort',      name:'Oort Cloud',    symbol:'☁️', dist:300000000000,    diam:0,       desc:'A hypothetical shell of icy objects at the edge of the solar system.' },
+    { id:'proxima',   name:'Proxima Centauri', symbol:'✨', dist:40175000000000, diam:214000, desc:'The closest star to the Sun.' },
+  ].sort((a, b) => a.dist - b.dist);
 
   // Formatters
   const nf  = new Intl.NumberFormat('en-US');
@@ -387,7 +414,9 @@
   
   function fmtKm(km) {
     if (km < 1e6) return nf.format(Math.round(km)) + ' km';
-    return nf1.format(km / 1e6) + 'M km';
+    if (km < 1e9) return nf1.format(km / 1e6) + 'M km';
+    if (km < 1e12) return nf1.format(km / 1e9) + 'B km';
+    return nf1.format(km / 1e12) + 'T km';
   }
 
   function fmtWalked(km) {
@@ -402,8 +431,10 @@
     const days = hours / 24;
     if (days < 730) return nf1.format(days) + ' days';
     const years = days / 365.25;
-    if (years < 1e6) return nf1.format(years) + ' years';
-    return nf1.format(years / 1e6) + ' million years';
+    if (years < 1e3) return nf1.format(years) + ' years';
+    if (years < 1e6) return nf1.format(years / 1e3) + 'k years';
+    if (years < 1e9) return nf1.format(years / 1e6) + 'M years';
+    return nf1.format(years / 1e9) + 'B years';
   }
 
   function fmtElapsed(ms) {
@@ -456,16 +487,12 @@
   const canvas = $('space-canvas');
   const ctx = canvas.getContext('2d');
   
-  // Base scale: 1 pixel = 1,000 km
-  const BASE_KM_PER_PX = 1000;
+  const BASE_KM_PER_PX = 1000; // 1 pixel = 1,000 km base scale
 
   let cam = {
     x: 0,
     y: 0,
-    zoom: 1,
-    isDragging: false,
-    lastX: 0,
-    lastY: 0
+    zoom: 1
   };
 
   function resize() {
@@ -586,10 +613,11 @@
   }
 
   function updateScaleHUD(w) {
-    const targetPx = 150;
-    const kmFor150px = (targetPx / cam.zoom) * BASE_KM_PER_PX;
-    const magnitude = Math.pow(10, Math.floor(Math.log10(kmFor150px)));
-    const normalized = kmFor150px / magnitude;
+    // Target roughly 120px tall scale bar
+    const targetPx = 120;
+    const kmFor120px = (targetPx / cam.zoom) * BASE_KM_PER_PX;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(kmFor120px)));
+    const normalized = kmFor120px / magnitude;
     
     let niceMultiplier;
     if (normalized < 1.5) niceMultiplier = 1;
@@ -600,38 +628,111 @@
     const niceKm = magnitude * niceMultiplier;
     const nicePx = (niceKm / BASE_KM_PER_PX) * cam.zoom;
     
-    scaleLine.style.width = `${nicePx}px`;
-    if (niceKm >= 1e6) {
+    // Apply vertical height
+    scaleLine.style.height = `${nicePx}px`;
+    
+    if (niceKm >= 1e12) {
+      scaleText.textContent = `${nf1.format(niceKm / 1e12)} trillion km`;
+    } else if (niceKm >= 1e9) {
+      scaleText.textContent = `${nf1.format(niceKm / 1e9)} billion km`;
+    } else if (niceKm >= 1e6) {
       scaleText.textContent = `${nf1.format(niceKm / 1e6)} million km`;
     } else {
-      scaleText.textContent = `${nf.format(niceKm)} km`;
+      scaleText.textContent = `${nf.format(Math.round(niceKm))} km`;
     }
   }
 
   // ==========================================
-  // INTERACTIVITY
+  // INTERACTIVITY (Pointer Events API)
   // ==========================================
+  
+  let pointers = new Map();
+  let lastCenter = null;
+  let lastDist = 0;
+
   canvas.addEventListener('pointerdown', e => {
-    cam.isDragging = true;
-    cam.lastX = e.clientX;
-    cam.lastY = e.clientY;
     canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
+    if (pointers.size === 1) {
+      lastCenter = { x: e.clientX, y: e.clientY };
+    } else if (pointers.size === 2) {
+      const pts = Array.from(pointers.values());
+      lastCenter = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2
+      };
+      lastDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    }
   });
 
   canvas.addEventListener('pointermove', e => {
-    if (!cam.isDragging) return;
-    cam.x += e.clientX - cam.lastX;
-    cam.y += e.clientY - cam.lastY;
-    cam.lastX = e.clientX;
-    cam.lastY = e.clientY;
-    draw();
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
+    const pts = Array.from(pointers.values());
+
+    if (pointers.size === 1) {
+      // One finger pan
+      const dx = pts[0].x - lastCenter.x;
+      const dy = pts[0].y - lastCenter.y;
+      cam.x += dx;
+      cam.y += dy;
+      lastCenter = { x: pts[0].x, y: pts[0].y };
+      draw();
+    } else if (pointers.size === 2) {
+      // Two finger pan & zoom
+      const center = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2
+      };
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      
+      const dx = center.x - lastCenter.x;
+      const dy = center.y - lastCenter.y;
+      const zoomFactor = lastDist > 0 ? (dist / lastDist) : 1;
+      
+      const rect = canvas.getBoundingClientRect();
+      const localX = center.x - rect.left - rect.width / 2;
+      const localY = center.y - rect.top - rect.height / 2;
+
+      // Apply zoom
+      cam.x -= localX * (zoomFactor - 1);
+      cam.y -= localY * (zoomFactor - 1);
+      
+      cam.zoom *= zoomFactor;
+      cam.zoom = Math.max(1e-9, Math.min(10000, cam.zoom));
+
+      // Apply pan
+      cam.x += dx;
+      cam.y += dy;
+
+      lastCenter = center;
+      lastDist = dist;
+      draw();
+    }
   });
 
-  canvas.addEventListener('pointerup', e => {
-    cam.isDragging = false;
-    canvas.releasePointerCapture(e.pointerId);
-  });
+  function removePointer(e) {
+    pointers.delete(e.pointerId);
+    try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    
+    const pts = Array.from(pointers.values());
+    if (pts.length === 1) {
+      lastCenter = { x: pts[0].x, y: pts[0].y };
+    } else if (pts.length === 2) {
+      lastCenter = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2
+      };
+      lastDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    }
+  }
 
+  canvas.addEventListener('pointerup', removePointer);
+  canvas.addEventListener('pointercancel', removePointer);
+
+  // Mouse wheel zoom
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
     const zoomFactor = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.2);
@@ -642,34 +743,11 @@
     
     cam.x -= mouseX * (zoomFactor - 1);
     cam.y -= mouseY * (zoomFactor - 1);
+    
     cam.zoom *= zoomFactor;
-    cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
+    cam.zoom = Math.max(1e-9, Math.min(10000, cam.zoom));
+    
     draw();
-  }, { passive: false });
-
-  // Pinch to zoom
-  let touchDist = 0;
-  canvas.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      touchDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-    }
-  }, { passive: false });
-
-  canvas.addEventListener('touchmove', e => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const newDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      cam.zoom *= (newDist / touchDist);
-      cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
-      touchDist = newDist;
-      draw();
-    }
   }, { passive: false });
 
   // ==========================================
@@ -683,11 +761,11 @@
       const btn = document.createElement('button');
       btn.className = 'item-btn';
       btn.innerHTML = `
-        <span style="display:flex; gap:12px; align-items:center;">
+        <span style="display:flex; gap:10px; align-items:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
           <span class="item-symbol">${o.symbol}</span>
-          <span>${o.name}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis;">${o.name}</span>
         </span>
-        <span>${fmtKm(o.dist)}</span>
+        <span style="font-size:0.65rem; color:var(--text-dim); white-space:nowrap;">${fmtKm(o.dist)}</span>
       `;
       btn.addEventListener('click', () => selectObject(o.id));
       li.appendChild(btn);
@@ -711,12 +789,12 @@
 
     // Auto-zoom to fit both objects
     const rect = canvas.parentElement.getBoundingClientRect();
-    const maxCanvasDist = Math.min(rect.width, rect.height) * 0.8; 
+    const maxCanvasDist = Math.min(rect.width, rect.height) * 0.75; 
     const newZoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist;
     
     cam.zoom = newZoom;
     cam.x = 0;
-    cam.y = rect.height * 0.15; // Push Earth towards the bottom
+    cam.y = rect.height * 0.15; 
     
     draw();
     walkViewEl.classList.add('hidden');
