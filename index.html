@@ -41,7 +41,7 @@
   @media (max-width: 768px) {
     #app {
       grid-template-columns: 1fr;
-      grid-template-rows: 220px 1fr;
+      grid-template-rows: 280px 1fr;
     }
   }
 
@@ -70,6 +70,76 @@
     margin-top: 6px;
     line-height: 1.5;
   }
+
+  /* Velocity Module */
+  .velocity-panel {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .velocity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .velocity-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+  .velocity-val {
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+  }
+  .velocity-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+  }
+  .velocity-row span:last-child {
+    color: var(--text);
+    font-weight: bold;
+  }
+  .btn-small {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.65rem;
+    padding: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+  }
+  .btn-small:hover {
+    background: var(--text);
+    color: var(--bg);
+  }
+  .btn-small.active {
+    border-color: var(--text);
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .toggle-row input {
+    accent-color: var(--text);
+    cursor: pointer;
+  }
+
   #list {
     list-style: none;
     overflow-y: auto;
@@ -143,7 +213,7 @@
     bottom: 24px;
     left: 24px;
     display: flex;
-    flex-direction: column-reverse; /* Grows upwards */
+    flex-direction: column-reverse;
     align-items: flex-start;
     gap: 8px;
   }
@@ -181,10 +251,18 @@
     transition: all 0.2s;
     text-transform: uppercase;
     z-index: 10;
+    text-align: center;
   }
   #go-btn:hover {
     background: var(--text);
     color: var(--bg);
+  }
+  #go-sub {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    opacity: 0.7;
   }
 
   /* Top Banner */
@@ -309,6 +387,25 @@
       <h1>Walk to the Stars</h1>
       <p id="tagline">Drag to pan. Scroll or pinch to zoom. Select a destination to visualise the true scale.</p>
     </div>
+
+    <div class="velocity-panel">
+      <div class="velocity-header">
+        <span class="velocity-title">Velocity</span>
+        <span class="velocity-val" id="liveSpeedDisplay">0.0 km/h</span>
+      </div>
+      <div class="velocity-row">
+        <span>Max Recorded</span>
+        <span id="maxSpeedDisplay">-- km/h</span>
+      </div>
+      
+      <button id="trackBtn" class="btn-small">Calibrate Speed</button>
+      
+      <label class="toggle-row">
+        <input type="checkbox" id="useMaxSpeedToggle" disabled>
+        Use Max Speed for journey
+      </label>
+    </div>
+
     <ul id="list"></ul>
   </aside>
 
@@ -325,7 +422,10 @@
       <div class="scale-line" id="scaleLine"></div>
     </div>
 
-    <button id="go-btn" class="hidden" type="button">GO</button>
+    <button id="go-btn" class="hidden" type="button">
+      GO
+      <span id="go-sub">at 5 km/h</span>
+    </button>
 
     <div id="walkView" class="hidden">
       <div class="walk-container">
@@ -338,7 +438,7 @@
 
         <div class="grid-stats">
           <div class="stat-box">
-            <div class="stat-label">Distance Walked</div>
+            <div class="stat-label">Distance Travelled</div>
             <div class="stat-val" id="wWalked">0 m</div>
           </div>
           <div class="stat-box">
@@ -368,11 +468,11 @@
 (() => {
   'use strict';
 
-  const PACE = 5;               // km/h
-  const KEY  = 'walk-to-the-stars.walk.v4';
+  const DEFAULT_PACE = 5; // km/h
+  const KEY  = 'walk-to-the-stars.walk.v5';
+  const KEY_MAX_SPEED = 'walk-to-the-stars.maxSpeed';
+  const KEY_USE_MAX_SPEED = 'walk-to-the-stars.useMaxSpeed';
 
-  // Distances (approx from Earth) and diameters in km.
-  // Sorted by distance.
   const CATALOG = [
     { id:'moon',      name:'The Moon',      symbol:'☽', dist:384400,          diam:3474,    desc:'Our closest neighbour.' },
     { id:'venus',     name:'Venus',         symbol:'♀', dist:42000000,        diam:12104,   desc:'The hottest planet, wrapped in thick clouds.' },
@@ -447,17 +547,41 @@
     return `${Math.floor(h / 24)}d ${h % 24}h`;
   }
 
+  // Haversine distance
+  function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180); 
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c;
+  }
+
   // State
   let walk = readWalk();
   let selectedId = CATALOG[0].id;
   let timer = null;
+
+  let maxSpeed = parseFloat(localStorage.getItem(KEY_MAX_SPEED)) || 0;
+  let useMaxSpeed = localStorage.getItem(KEY_USE_MAX_SPEED) === 'true';
+  let watchId = null;
+  let lastPos = null;
 
   // DOM Elements
   const $ = id => document.getElementById(id);
   const listEl = $('list');
   const walkViewEl = $('walkView');
   const goBtn = $('go-btn');
+  const goSub = $('go-sub');
   const scaleText = $('scaleText'), scaleLine = $('scaleLine');
+
+  const liveSpeedDisplay = $('liveSpeedDisplay');
+  const maxSpeedDisplay = $('maxSpeedDisplay');
+  const trackBtn = $('trackBtn');
+  const useMaxSpeedToggle = $('useMaxSpeedToggle');
 
   const wTitle = $('wTitle'), wPct = $('wPct'), wFill = $('wFill'),
         wWalked = $('wWalked'), wLeft = $('wLeft'),
@@ -481,19 +605,111 @@
     } catch (e) {}
   }
 
+  // Update UI for speed
+  function updateSpeedUI() {
+    maxSpeedDisplay.textContent = maxSpeed > 0 ? `${maxSpeed.toFixed(1)} km/h` : '-- km/h';
+    useMaxSpeedToggle.disabled = maxSpeed <= 0;
+    useMaxSpeedToggle.checked = useMaxSpeed;
+    
+    if (useMaxSpeed && maxSpeed > 0) {
+      goSub.textContent = `at max speed (${maxSpeed.toFixed(1)} km/h)`;
+    } else {
+      goSub.textContent = `at ${DEFAULT_PACE} km/h`;
+    }
+  }
+
+  useMaxSpeedToggle.addEventListener('change', (e) => {
+    useMaxSpeed = e.target.checked;
+    localStorage.setItem(KEY_USE_MAX_SPEED, useMaxSpeed);
+    updateSpeedUI();
+  });
+
+  // Geolocation Speed Tracker
+  function startTracking() {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    trackBtn.textContent = "Stop Tracking";
+    trackBtn.classList.add('active');
+    lastPos = null;
+
+    watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, speed } = position.coords;
+        const timestamp = position.timestamp;
+
+        let currentSpeedKmh = 0;
+        
+        // 1. Try using the device's native speed (m/s to km/h)
+        if (speed !== null && speed >= 0) {
+          currentSpeedKmh = speed * 3.6;
+        } 
+        // 2. Fallback to calculating from positions
+        else if (lastPos) {
+          const distanceKm = getDistanceFromLatLonInKm(
+            lastPos.lat, lastPos.lon, latitude, longitude
+          );
+          const timeHours = (timestamp - lastPos.timestamp) / 3600000;
+          if (timeHours > 0) {
+            currentSpeedKmh = distanceKm / timeHours;
+          }
+        }
+
+        // Filter out GPS noise (e.g. standing still, sudden jumps)
+        // If accuracy is poor, or speed is ridiculously high, ignore.
+        if (currentSpeedKmh > 0 && currentSpeedKmh < 2000 && position.coords.accuracy < 50) {
+          liveSpeedDisplay.textContent = `${currentSpeedKmh.toFixed(1)} km/h`;
+          
+          if (currentSpeedKmh > maxSpeed) {
+            maxSpeed = currentSpeedKmh;
+            localStorage.setItem(KEY_MAX_SPEED, maxSpeed);
+            updateSpeedUI();
+          }
+        }
+
+        lastPos = { lat: latitude, lon: longitude, timestamp: timestamp };
+      },
+      (error) => {
+        console.warn("Geolocation error:", error);
+        if (error.code === 1) {
+          alert("Please allow location access to calibrate speed.");
+        }
+        stopTracking();
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+  }
+
+  function stopTracking() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    trackBtn.textContent = "Calibrate Speed";
+    trackBtn.classList.remove('active');
+    liveSpeedDisplay.textContent = "0.0 km/h";
+    lastPos = null;
+  }
+
+  trackBtn.addEventListener('click', () => {
+    if (watchId !== null) {
+      stopTracking();
+    } else {
+      startTracking();
+    }
+  });
+
   // ==========================================
   // CANVAS ENGINE
   // ==========================================
   const canvas = $('space-canvas');
   const ctx = canvas.getContext('2d');
   
-  const BASE_KM_PER_PX = 1000; // 1 pixel = 1,000 km base scale
+  const BASE_KM_PER_PX = 1000; 
 
-  let cam = {
-    x: 0,
-    y: 0,
-    zoom: 1
-  };
+  let cam = { x: 0, y: 0, zoom: 1 };
 
   function resize() {
     const dpr = window.devicePixelRatio || 1;
@@ -520,7 +736,6 @@
     const target = CATALOG.find(o => o.id === selectedId);
     if (!target) { ctx.restore(); return; }
 
-    // Draw Dotted Line
     const distPx = target.dist / BASE_KM_PER_PX;
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
@@ -531,13 +746,9 @@
     ctx.stroke();
     ctx.setLineDash([]); 
 
-    // Draw Earth
     drawPlanet(0, 0, 12742, 'Earth', '#ffffff', lineWidth);
-    
-    // Draw Target
     drawPlanet(0, -distPx, target.diam, target.name, '#ffffff', lineWidth);
 
-    // Distance text
     if (distPx * cam.zoom > 100) {
       ctx.save();
       ctx.translate(0, -distPx / 2);
@@ -566,7 +777,6 @@
       ctx.fillStyle = color;
       ctx.fill();
     } else {
-      // Marker for tiny planets
       ctx.beginPath();
       ctx.arc(x, y, 2 / cam.zoom, 0, Math.PI * 2);
       ctx.fillStyle = color;
@@ -581,7 +791,6 @@
       ctx.stroke();
     }
 
-    // Text Label
     ctx.save();
     ctx.translate(x, y);
     ctx.fillStyle = '#fff';
@@ -597,10 +806,8 @@
     if (starCache.length === 0) {
       for (let i = 0; i < 150; i++) {
         starCache.push({
-          x: Math.random(),
-          y: Math.random(),
-          s: Math.random() * 1.5 + 0.5,
-          o: Math.random() * 0.3 + 0.1
+          x: Math.random(), y: Math.random(),
+          s: Math.random() * 1.5 + 0.5, o: Math.random() * 0.3 + 0.1
         });
       }
     }
@@ -613,7 +820,6 @@
   }
 
   function updateScaleHUD(w) {
-    // Target roughly 120px tall scale bar
     const targetPx = 120;
     const kmFor120px = (targetPx / cam.zoom) * BASE_KM_PER_PX;
     const magnitude = Math.pow(10, Math.floor(Math.log10(kmFor120px)));
@@ -628,7 +834,6 @@
     const niceKm = magnitude * niceMultiplier;
     const nicePx = (niceKm / BASE_KM_PER_PX) * cam.zoom;
     
-    // Apply vertical height
     scaleLine.style.height = `${nicePx}px`;
     
     if (niceKm >= 1e12) {
@@ -643,9 +848,8 @@
   }
 
   // ==========================================
-  // INTERACTIVITY (Pointer Events API)
+  // INTERACTIVITY
   // ==========================================
-  
   let pointers = new Map();
   let lastCenter = null;
   let lastDist = 0;
@@ -658,10 +862,7 @@
       lastCenter = { x: e.clientX, y: e.clientY };
     } else if (pointers.size === 2) {
       const pts = Array.from(pointers.values());
-      lastCenter = {
-        x: (pts[0].x + pts[1].x) / 2,
-        y: (pts[0].y + pts[1].y) / 2
-      };
+      lastCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
       lastDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
     }
   });
@@ -673,7 +874,6 @@
     const pts = Array.from(pointers.values());
 
     if (pointers.size === 1) {
-      // One finger pan
       const dx = pts[0].x - lastCenter.x;
       const dy = pts[0].y - lastCenter.y;
       cam.x += dx;
@@ -681,11 +881,7 @@
       lastCenter = { x: pts[0].x, y: pts[0].y };
       draw();
     } else if (pointers.size === 2) {
-      // Two finger pan & zoom
-      const center = {
-        x: (pts[0].x + pts[1].x) / 2,
-        y: (pts[0].y + pts[1].y) / 2
-      };
+      const center = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
       
       const dx = center.x - lastCenter.x;
@@ -696,14 +892,10 @@
       const localX = center.x - rect.left - rect.width / 2;
       const localY = center.y - rect.top - rect.height / 2;
 
-      // Apply zoom
       cam.x -= localX * (zoomFactor - 1);
       cam.y -= localY * (zoomFactor - 1);
-      
       cam.zoom *= zoomFactor;
       cam.zoom = Math.max(1e-9, Math.min(10000, cam.zoom));
-
-      // Apply pan
       cam.x += dx;
       cam.y += dy;
 
@@ -716,15 +908,11 @@
   function removePointer(e) {
     pointers.delete(e.pointerId);
     try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
-    
     const pts = Array.from(pointers.values());
     if (pts.length === 1) {
       lastCenter = { x: pts[0].x, y: pts[0].y };
     } else if (pts.length === 2) {
-      lastCenter = {
-        x: (pts[0].x + pts[1].x) / 2,
-        y: (pts[0].y + pts[1].y) / 2
-      };
+      lastCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
       lastDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
     }
   }
@@ -732,28 +920,22 @@
   canvas.addEventListener('pointerup', removePointer);
   canvas.addEventListener('pointercancel', removePointer);
 
-  // Mouse wheel zoom
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
     const zoomFactor = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.2);
-    
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left - rect.width / 2;
     const mouseY = e.clientY - rect.top - rect.height / 2;
-    
     cam.x -= mouseX * (zoomFactor - 1);
     cam.y -= mouseY * (zoomFactor - 1);
-    
     cam.zoom *= zoomFactor;
     cam.zoom = Math.max(1e-9, Math.min(10000, cam.zoom));
-    
     draw();
   }, { passive: false });
 
   // ==========================================
-  // UI LOGIC
+  // UI & WALK LOGIC
   // ==========================================
-
   function buildList() {
     listEl.innerHTML = '';
     CATALOG.forEach(o => {
@@ -777,17 +959,14 @@
     selectedId = id;
     const o = CATALOG.find(x => x.id === id);
     
-    // Update active state in list
     document.querySelectorAll('.item-btn').forEach(el => el.classList.remove('active'));
     const btns = Array.from(document.querySelectorAll('.item-btn'));
     const targetBtn = btns.find(b => b.textContent.includes(o.name));
     if (targetBtn) targetBtn.classList.add('active');
 
-    // Show GO button
     goBtn.classList.remove('hidden');
-    goBtn.textContent = 'GO';
+    updateSpeedUI();
 
-    // Auto-zoom to fit both objects
     const rect = canvas.parentElement.getBoundingClientRect();
     const maxCanvasDist = Math.min(rect.width, rect.height) * 0.75; 
     const newZoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist;
@@ -805,8 +984,11 @@
     const o = CATALOG.find(x => x.id === walk.objectId);
     if (!o) { walk = null; writeWalk(null); return showVisual(); }
 
+    // Use the speed locked in when the walk started
+    const currentPace = walk.speed || DEFAULT_PACE;
+    
     const elapsed = Math.max(0, Date.now() - walk.startedAt);
-    const walkedRaw = (elapsed / 3600000) * PACE;
+    const walkedRaw = (elapsed / 3600000) * currentPace;
     const walked = Math.min(walkedRaw, o.dist);
     const remaining = Math.max(0, o.dist - walkedRaw);
     const pct = Math.min(100, (walkedRaw / o.dist) * 100);
@@ -818,14 +1000,14 @@
     wWalked.textContent = fmtWalked(walked);
     wLeft.textContent = done ? '0 km' : fmtWalked(remaining);
     wElapsed.textContent = fmtElapsed(elapsed);
-    wEta.textContent = done ? 'Arrived 🎉' : fmtDur(remaining / PACE);
+    wEta.textContent = done ? 'Arrived 🎉' : fmtDur(remaining / currentPace);
   }
 
   function showWalk() {
     if (!walk) return showVisual();
     
     const o = CATALOG.find(x => x.id === walk.objectId);
-    wTitle.textContent = 'Walking to ' + o.name;
+    wTitle.textContent = 'Travelling to ' + o.name;
     
     updateWalk();
     if (timer) clearInterval(timer);
@@ -840,12 +1022,22 @@
     walkViewEl.classList.add('hidden');
     document.getElementById('banner').classList.add('hidden');
     goBtn.classList.remove('hidden');
+    updateSpeedUI();
     draw();
   }
 
   goBtn.addEventListener('click', () => {
-    if (walk && !confirm(`You're already walking to ${walk.objectId}.\n\nAbandon that walk?`)) return;
-    walk = { objectId: selectedId, startedAt: Date.now(), pace: PACE };
+    if (walk && !confirm(`You're already travelling to ${walk.objectId}.\n\nAbandon that journey?`)) return;
+    
+    // Lock in the speed at the moment of starting
+    const speedToUse = (useMaxSpeed && maxSpeed > 0) ? maxSpeed : DEFAULT_PACE;
+    
+    walk = { 
+      objectId: selectedId, 
+      startedAt: Date.now(), 
+      speed: speedToUse 
+    };
+    
     writeWalk(walk);
     showWalk();
   });
@@ -853,7 +1045,7 @@
   $('wBrowse').addEventListener('click', showVisual);
 
   $('wAbandon').addEventListener('click', () => {
-    if (!confirm('Abandon this walk?')) return;
+    if (!confirm('Abandon this journey?')) return;
     walk = null;
     writeWalk(null);
     showVisual();
@@ -864,6 +1056,7 @@
   buildList();
   resize();
   selectObject(selectedId);
+  updateSpeedUI();
 
   // Check if there is an active walk
   if (walk) {
