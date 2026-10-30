@@ -2,327 +2,377 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Walk to the Stars</title>
 <style>
-  :root{
-    --bg:#04060f;
-    --ink:#e9eefb;
-    --muted:#8fa0c4;
-    --line:rgba(130,170,255,.16);
-    --accent:#6ea8ff;
-    --panel:rgba(8,13,26,.68);
+  :root {
+    --bg: #000000;
+    --panel: rgba(4, 6, 10, 0.85);
+    --border: #1a2233;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --accent: #00e5ff;
+    --font: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(120% 90% at 50% 112%, #0d2145 0%, #060a18 45%, #02030a 100%);
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;
-    overflow:hidden;
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-radius: 0; /* Strictly no rounded edges */
   }
-  .hidden{display:none!important}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .hidden { display: none !important; }
 
-  /* starfield */
-  .sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-  .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 4s ease-in-out infinite}
-  @keyframes twinkle{0%,100%{opacity:.2}50%{opacity:1}}
-
-  /* layout */
-  #app{
-    position:relative;z-index:2;
-    height:100vh;height:100dvh;
-    max-width:1200px;margin:0 auto;
-    display:grid;
-    grid-template-columns:minmax(240px,320px) 1fr;
-    gap:0;
-    overflow:hidden;
+  /* Layout */
+  #app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100%;
+    width: 100%;
   }
-  @media (max-width:760px){
-    #app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  }
-
-  /* left sidebar */
-  aside{
-    background:rgba(6,10,20,.72);
-    border-right:1px solid var(--line);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    display:flex;
-    flex-direction:column;
-    min-height:0;
-    overflow:hidden;
-  }
-  .sidebar-head{
-    padding:20px 16px 14px;
-    flex:0 0 auto;
-  }
-  h1{
-    margin:0;
-    font-size:clamp(1.2rem,2.6vw,1.5rem);
-    letter-spacing:-.03em;
-    font-weight:800;
-    background:linear-gradient(100deg,#dce9ff,#8fb6ff 45%,#c9a4ff);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-  }
-  #tagline{margin:6px 0 0;font-size:.78rem;color:var(--muted);line-height:1.4}
-
-  #list{
-    list-style:none;margin:0;padding:0 8px 16px;
-    overflow-y:auto;
-    flex:1 1 auto;
-    min-height:0;
-    scrollbar-width:thin;
-    scrollbar-color:rgba(130,170,255,.3) transparent;
-  }
-  #list::-webkit-scrollbar{width:6px}
-  #list::-webkit-scrollbar-thumb{background:rgba(130,170,255,.25);border-radius:99px}
-
-  .item{
-    border-radius:12px;
-    transition:background .15s;
-  }
-  .item.active{background:rgba(110,168,255,.12)}
-  .item-head{
-    width:100%;display:flex;align-items:center;gap:10px;
-    padding:10px 8px;background:none;border:0;color:inherit;
-    font:inherit;text-align:left;cursor:pointer;border-radius:12px;
-  }
-  .item-head:hover{background:rgba(110,168,255,.07)}
-  .emoji{font-size:1.15rem;width:1.6rem;text-align:center;flex:0 0 auto}
-  .name{flex:1;font-weight:600;font-size:.88rem;line-height:1.3}
-  .dist{color:var(--muted);font-size:.7rem;font-variant-numeric:tabular-nums;white-space:nowrap}
-
-  /* right main */
-  main{
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    min-height:0;
-    overflow:hidden;
+  @media (max-width: 768px) {
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 200px 1fr;
+    }
   }
 
-  /* banner */
-  .banner{
-    flex:0 0 auto;display:flex;align-items:center;gap:10px;justify-content:space-between;
-    margin:16px 16px 0;
-    background:rgba(110,168,255,.12);border:1px solid var(--line);
-    border-radius:14px;padding:10px 14px;font-size:.8rem;
+  /* Sidebar */
+  aside {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
   }
-  .banner button{background:none;border:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+  .sidebar-head {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  h1 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  #tagline {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  #list {
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  #list::-webkit-scrollbar { width: 4px; }
+  #list::-webkit-scrollbar-thumb { background: var(--border); }
+  
+  .item-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+  .item-btn:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+  }
+  .item-btn.active {
+    background: rgba(0, 229, 255, 0.05);
+    color: var(--accent);
+    border-left: 2px solid var(--accent);
+    padding-left: 14px;
+  }
+  .item-symbol {
+    font-size: 1rem;
+    width: 24px;
+    text-align: center;
+  }
 
-  /* visualization */
-  #visual{
-    flex:1 1 auto;
-    position:relative;
-    min-height:0;
-    display:flex;
-    flex-direction:column;
-    padding:16px;
-    overflow:hidden;
+  /* Canvas Area */
+  main {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
   }
-  #visual svg{
-    position:absolute;inset:0;width:100%;height:100%;
-    pointer-events:none;
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
   }
-  .earth-node{
-    position:absolute;left:50%;bottom:0;
-    transform:translate(-50%,50%);
-    width:clamp(120px,20vw,220px);height:clamp(120px,20vw,220px);
-    border-radius:50%;
-    background:radial-gradient(circle at 34% 16%, #8ed2ff 0%, #2f8fe0 16%, #1760b8 36%, #0b3570 62%, #051a3d 100%);
-    box-shadow:
-      0 0 60px 10px rgba(90,170,255,.35),
-      0 0 160px 40px rgba(60,120,255,.16),
-      inset 0 10px 50px rgba(150,215,255,.35);
-    z-index:2;
-    pointer-events:none;
-  }
-  .earth-node::after{
-    content:"Earth";position:absolute;left:50%;bottom:8%;
-    transform:translateX(-50%);
-    font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;
-    color:rgba(255,255,255,.7);font-weight:700;
-  }
-  .object-node{
-    position:absolute;
-    z-index:2;
-    text-align:center;
-    pointer-events:none;
-    transform:translate(-50%,-50%);
-  }
-  .object-node .big-emoji{font-size:clamp(2rem,5vw,4rem);line-height:1;filter:drop-shadow(0 0 18px rgba(140,190,255,.8))}
-  .object-node .label{margin-top:6px;font-size:.75rem;font-weight:700;letter-spacing:-.01em}
-  .object-node .sub{font-size:.65rem;color:var(--muted)}
+  canvas:active { cursor: grabbing; }
 
-  .distance-label{
-    position:absolute;
-    z-index:3;
-    background:rgba(4,8,20,.82);
-    border:1px solid var(--line);
-    border-radius:99px;
-    padding:6px 14px;
-    font-size:.8rem;
-    font-weight:700;
-    font-variant-numeric:tabular-nums;
-    white-space:nowrap;
-    pointer-events:none;
-    transform:translate(-50%,-50%);
-    backdrop-filter:blur(8px);
+  /* HUD Overlay */
+  .hud {
+    position: absolute;
+    pointer-events: none;
   }
-  .distance-label small{display:block;font-size:.65rem;font-weight:500;color:var(--muted);text-align:center}
+  .hud * { pointer-events: auto; }
 
-  /* action bar inside visual */
-  .visual-actions{
-    position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
-    z-index:4;
-    display:flex;align-items:center;gap:10px;
-    flex-wrap:wrap;justify-content:center;
+  /* Scale Bar (Bottom Left) */
+  #scale-hud {
+    bottom: 24px;
+    left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
-  .start{
-    padding:11px 22px;border-radius:12px;border:0;
-    background:linear-gradient(115deg,#4f8dff,#a06bff);
-    color:#fff;font:inherit;font-weight:700;cursor:pointer;
-    box-shadow:0 10px 26px rgba(90,130,255,.35);
-    transition:filter .15s,transform .06s;
-    font-size:.9rem;
+  .scale-line {
+    height: 8px;
+    border-left: 1px solid var(--text);
+    border-right: 1px solid var(--text);
+    border-bottom: 1px solid var(--text);
+    width: 100px;
+    transition: width 0.1s;
   }
-  .start:hover{filter:brightness(1.1)}
-  .start:active{transform:translateY(1px)}
+  .scale-text {
+    font-size: 0.7rem;
+    color: var(--text);
+    background: rgba(0,0,0,0.5);
+    padding: 2px 4px;
+    display: inline-block;
+    align-self: flex-start;
+  }
 
-  /* walk view */
-  #walkView{
-    flex:1 1 auto;
-    min-height:0;
-    overflow-y:auto;
-    padding:22px 20px;
-    display:flex;flex-direction:column;gap:16px;
-    scrollbar-width:thin;
-    scrollbar-color:rgba(130,170,255,.3) transparent;
+  /* Info Panel (Bottom Right) */
+  #info-hud {
+    bottom: 24px;
+    right: 24px;
+    text-align: right;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px;
+    min-width: 240px;
   }
-  .walk-head{display:flex;align-items:center;gap:12px}
-  .walk-emoji{font-size:2rem}
-  .walk-head h2{margin:0;font-size:1.05rem;letter-spacing:-.01em}
-  .walk-head p{margin:3px 0 0;font-size:.75rem;color:var(--muted)}
+  .target-name {
+    font-size: 1.2rem;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .target-dist {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .target-desc {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 0.75rem;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .btn:hover {
+    background: var(--accent);
+    color: #000;
+  }
 
-  .pct{
-    font-size:clamp(1.6rem,7vw,2.4rem);font-weight:800;letter-spacing:-.03em;
-    line-height:1.05;font-variant-numeric:tabular-nums;
-    background:linear-gradient(100deg,#dbe8ff,#8fb6ff 50%,#c9a4ff);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
+  /* Top Banner */
+  #banner {
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
-  .bar{position:relative;height:12px;border-radius:99px;background:rgba(130,170,255,.13)}
-  .bar-fill{
-    height:100%;border-radius:99px;width:0;
-    background:linear-gradient(90deg,#4f8dff,#8f7bff,#c98cff);
-    box-shadow:0 0 18px rgba(120,150,255,.85);
-    transition:width .8s linear;
+  #banner button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: var(--font);
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-transform: uppercase;
   }
-  .walker{
-    position:absolute;top:50%;left:8px;font-size:1rem;line-height:1;
-    transform:translate(-50%,-50%);
-    transition:left .8s linear;
-    filter:drop-shadow(0 0 6px rgba(0,0,0,.8));
-    pointer-events:none;
-  }
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .stat{background:rgba(120,160,255,.07);border:1px solid rgba(130,170,255,.12);border-radius:13px;padding:10px 12px}
-  .stat .k{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-  .stat .v{display:block;margin-top:4px;font-size:.9rem;font-weight:650;font-variant-numeric:tabular-nums}
-  .arrival{margin:0;font-size:.8rem;color:var(--muted);text-align:center;line-height:1.5}
-  .walk-actions{display:flex;gap:10px;align-items:center}
-  .link{flex:0 0 auto;background:none;border:0;color:var(--accent);font:inherit;font-size:.82rem;font-weight:600;cursor:pointer;padding:10px 4px}
-  .link:hover{text-decoration:underline}
-  .ghost{
-    flex:1;padding:11px;border-radius:12px;font:inherit;font-size:.84rem;cursor:pointer;
-    background:none;border:1px solid rgba(255,120,140,.35);color:#ff9fb0;transition:background .15s;
-  }
-  .ghost:hover{background:rgba(255,120,140,.1)}
+  #banner button:hover { text-decoration: underline; }
 
-  @media (max-width:420px){
-    .stats{grid-template-columns:1fr}
+  /* Walk View */
+  #walkView {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .walk-container {
+    width: 100%;
+    max-width: 600px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+  .walk-container h2 {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    color: var(--accent);
+  }
+  .progress-bar {
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    margin: 24px 0;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+  .progress-pct {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .grid-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-box {
+    border: 1px solid var(--border);
+    padding: 12px;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .stat-val {
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .walk-actions {
+    display: flex;
+    gap: 16px;
+  }
+  .btn-ghost {
+    border-color: #ff4444;
+    color: #ff4444;
+  }
+  .btn-ghost:hover {
+    background: #ff4444;
+    color: #000;
   }
 </style>
 </head>
 <body>
 
-<div class="sky" id="sky" aria-hidden="true"></div>
-
 <div id="app">
   <aside>
     <div class="sidebar-head">
       <h1>Walk to the Stars</h1>
-      <p id="tagline">Pick a destination. Start walking at 5 km/h. Come back later to see how far you got.</p>
+      <p id="tagline">Drag to pan. Scroll to zoom. Select a destination to visualise the true scale.</p>
     </div>
     <ul id="list"></ul>
   </aside>
 
   <main>
-    <div id="banner" class="banner hidden">
-      <span>Currently walking to <b id="bannerDest"></b></span>
-      <button id="bannerResume" type="button">Resume →</button>
+    <canvas id="space-canvas"></canvas>
+
+    <div id="banner" class="hud hidden">
+      <span>In transit to <b id="bannerDest"></b></span>
+      <button id="bannerResume" type="button">Resume Walk →</button>
     </div>
 
-    <section id="visual" class="hidden">
-      <!-- SVG for dotted line -->
-      <svg id="lineSvg" aria-hidden="true">
-        <line id="dotLine" stroke="rgba(150,190,255,.55)" stroke-width="2" stroke-dasharray="6 8" stroke-linecap="round"></line>
-      </svg>
+    <div id="scale-hud" class="hud">
+      <div class="scale-text" id="scaleText">10,000 km</div>
+      <div class="scale-line" id="scaleLine"></div>
+    </div>
 
-      <!-- Earth -->
-      <div class="earth-node"></div>
+    <div id="info-hud" class="hud">
+      <div class="target-name" id="visName">The Moon</div>
+      <div class="target-dist" id="visDist">384,400 km</div>
+      <div class="target-desc" id="visDesc"></div>
+      <button class="btn" id="startBtn" type="button">Initiate Walk</button>
+    </div>
 
-      <!-- destination node -->
-      <div class="object-node" id="objectNode">
-        <div class="big-emoji" id="visEmoji">🌕</div>
-        <div class="label" id="visName">The Moon</div>
-        <div class="sub" id="visSub"></div>
-      </div>
+    <div id="walkView" class="hidden">
+      <div class="walk-container">
+        <h2 id="wTitle">Walking to the Moon</h2>
+        
+        <div class="progress-pct" id="wPct">0%</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="wFill"></div>
+        </div>
 
-      <!-- distance label -->
-      <div class="distance-label" id="distLabel">
-        <span id="distValue">384,400 km</span>
-        <small id="distSmall">about 1.3 light-seconds</small>
-      </div>
+        <div class="grid-stats">
+          <div class="stat-box">
+            <div class="stat-label">Distance Walked</div>
+            <div class="stat-val" id="wWalked">0 m</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Distance Left</div>
+            <div class="stat-val" id="wLeft">384,400 km</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Time Elapsed</div>
+            <div class="stat-val" id="wElapsed">0s</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Est. Arrival</div>
+            <div class="stat-val" id="wEta">—</div>
+          </div>
+        </div>
 
-      <!-- actions -->
-      <div class="visual-actions">
-        <button class="start" id="startBtn" type="button">Start walking →</button>
-      </div>
-    </section>
-
-    <section id="walkView" class="hidden">
-      <div class="walk-head">
-        <div class="walk-emoji" id="wEmoji">🌕</div>
-        <div>
-          <h2 id="wTitle">Walking to the Moon</h2>
-          <p id="wSub"></p>
+        <div class="walk-actions">
+          <button class="btn" id="wBrowse" type="button">Back to Map</button>
+          <button class="btn btn-ghost" id="wAbandon" type="button">Abandon</button>
         </div>
       </div>
-
-      <div class="pct" id="wPct">0%</div>
-
-      <div class="bar">
-        <div class="bar-fill" id="wFill"></div>
-        <div class="walker" id="wWalker">🚶</div>
-      </div>
-
-      <div class="stats">
-        <div class="stat"><span class="k">Distance walked</span><span class="v" id="wWalked">0 m</span></div>
-        <div class="stat"><span class="k">Still to go</span><span class="v" id="wLeft">—</span></div>
-        <div class="stat"><span class="k">Time on the road</span><span class="v" id="wElapsed">0s</span></div>
-        <div class="stat"><span class="k">Time remaining</span><span class="v" id="wEta">—</span></div>
-      </div>
-
-      <p class="arrival" id="wArrival"></p>
-
-      <div class="walk-actions">
-        <button class="link" id="wBrowse" type="button">Other destinations</button>
-        <button class="ghost" id="wAbandon" type="button">Abandon walk</button>
-      </div>
-    </section>
+    </div>
   </main>
 </div>
 
@@ -330,86 +380,49 @@
 (() => {
   'use strict';
 
-  /* =========================================================
-     Config & data – distances from NASA / Calgary RASC
-     ========================================================= */
-  const PACE = 5;               // km per hour
-  const LY   = 9.4607e12;       // km in a light-year
-  const KEY  = 'walk-to-the-stars.walk.v2';
+  const PACE = 5;               // km/h
+  const KEY  = 'walk-to-the-stars.walk.v3';
 
+  // Distances and diameters in km.
+  // Sorted by distance.
   const CATALOG = [
-    { id:'moon',      name:'The Moon',          emoji:'🌕', km:384400,
-      blurb:'Our closest neighbour — close enough to wave at.' },
-    { id:'sun',       name:'The Sun',           emoji:'☀️', km:149597870,
-      blurb:'Eight light-minutes away. Bring sunscreen.' },
-    { id:'mercury',   name:'Mercury',           emoji:'☿️', km:91500000,
-      blurb:'The smallest planet and the fastest orbiter.' },
-    { id:'venus',     name:'Venus',             emoji:'♀️', km:42000000,
-      blurb:'The hottest planet, wrapped in thick clouds.' },
-    { id:'mars',      name:'Mars',              emoji:'♂️', km:75000000,
-      blurb:'The red planet. Dust storms included.' },
-    { id:'ceres',     name:'Ceres',             emoji:'⚳️', km:265050000,
-      blurb:'The largest object in the asteroid belt.' },
-    { id:'jupiter',   name:'Jupiter',           emoji:'♃', km:630000000,
-      blurb:'The giant of the solar system, with a storm bigger than Earth.' },
-    { id:'saturn',    name:'Saturn',            emoji:'♄', km:1290000000,
-      blurb:'Famous for its rings — mostly ice and rock.' },
-    { id:'uranus',    name:'Uranus',            emoji:'♅', km:2715000000,
-      blurb:'An ice giant tipped on its side.' },
-    { id:'neptune',   name:'Neptune',           emoji:'♆', km:4350000000,
-      blurb:'The windiest planet, far beyond the Sun’s warmth.' },
-    { id:'pluto',     name:'Pluto',             emoji:'♇', km:5760000000,
-      blurb:'A dwarf planet in the Kuiper Belt. Still worth the walk.' },
-    { id:'halley',    name:'Halley’s Comet',    emoji:'☄️', km:100000000,
-      blurb:'A periodic comet that visits the inner solar system every ~76 years.' },
-  ].sort((a, b) => a.km - b.km);
+    { id:'moon',      name:'The Moon',      symbol:'☽', dist:384400,      diam:3474,    desc:'Our closest neighbour.' },
+    { id:'venus',     name:'Venus',         symbol:'♀', dist:42000000,    diam:12104,   desc:'The hottest planet, wrapped in thick clouds.' },
+    { id:'mars',      name:'Mars',          symbol:'♂', dist:75000000,    diam:6779,    desc:'The red planet. Dust storms included.' },
+    { id:'mercury',   name:'Mercury',       symbol:'☿', dist:91500000,    diam:4879,    desc:'The smallest planet and the fastest orbiter.' },
+    { id:'halley',    name:'Halley’s Comet',symbol:'☄', dist:100000000,   diam:11,      desc:'A periodic comet that visits every ~76 years.' },
+    { id:'sun',       name:'The Sun',       symbol:'☀', dist:149597870,   diam:1392700, desc:'Eight light-minutes away. Bring sunscreen.' },
+    { id:'ceres',     name:'Ceres',         symbol:'⚳', dist:265050000,   diam:946,     desc:'The largest object in the asteroid belt.' },
+    { id:'jupiter',   name:'Jupiter',       symbol:'♃', dist:630000000,   diam:139820,  desc:'The giant of the solar system.' },
+    { id:'saturn',    name:'Saturn',        symbol:'♄', dist:1290000000,  diam:116460,  desc:'Famous for its rings — mostly ice and rock.' },
+    { id:'uranus',    name:'Uranus',        symbol:'♅', dist:2715000000,  diam:50724,   desc:'An ice giant tipped on its side.' },
+    { id:'neptune',   name:'Neptune',       symbol:'♆', dist:4350000000,  diam:49244,   desc:'The windiest planet.' },
+    { id:'pluto',     name:'Pluto',         symbol:'♇', dist:5760000000,  diam:2376,    desc:'A dwarf planet in the Kuiper Belt.' },
+  ];
 
-  /* =========================================================
-     Formatters
-     ========================================================= */
+  // Formatters
   const nf  = new Intl.NumberFormat('en-US');
   const nf1 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
-  const nfC = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 });
-
-  const SUP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
-  const sup = n => String(n).split('').map(c => SUP[c] || c).join('');
-
-  function sci(n, d = 2) {
-    const e = Math.floor(Math.log10(n));
-    return `${(n / Math.pow(10, e)).toFixed(d)} × 10${sup(e)}`;
-  }
-
+  
   function fmtKm(km) {
-    if (!isFinite(km)) return '∞ km';
-    if (km < 1e6)  return nf.format(Math.round(km)) + ' km';
-    if (km < 1e12) return nfC.format(km) + ' km';
-    return sci(km) + ' km';
+    if (km < 1e6) return nf.format(Math.round(km)) + ' km';
+    return nf1.format(km / 1e6) + 'M km';
   }
 
   function fmtWalked(km) {
-    if (km < 1)    return (km * 1000).toFixed(1) + ' m';
+    if (km < 1) return (km * 1000).toFixed(1) + ' m';
     if (km < 1000) return km.toFixed(2) + ' km';
     return fmtKm(km);
   }
 
-  function fmtLy(km) {
-    const ly = km / LY;
-    if (ly < 0.02) return null;
-    if (ly < 1000) return nf1.format(ly) + ' light-years';
-    if (ly < 1e6)  return nf.format(Math.round(ly)) + ' light-years';
-    return nf1.format(ly / 1e6) + ' million light-years';
-  }
-
   function fmtDur(hours) {
-    if (hours < 1/60) return 'under a minute';
-    if (hours < 1)    return Math.round(hours * 60) + ' min';
-    if (hours < 48)   return nf1.format(hours) + ' hours';
+    if (hours < 1) return Math.round(hours * 60) + ' min';
+    if (hours < 48) return nf1.format(hours) + ' hours';
     const days = hours / 24;
-    if (days < 730)   return nf1.format(days) + ' days';
+    if (days < 730) return nf1.format(days) + ' days';
     const years = days / 365.25;
-    if (years < 1e6)  return nf1.format(years) + ' years';
-    if (years < 1e9)  return nf1.format(years / 1e6) + ' million years';
-    return nf1.format(years / 1e9) + ' billion years';
+    if (years < 1e6) return nf1.format(years) + ' years';
+    return nf1.format(years / 1e6) + ' million years';
   }
 
   function fmtElapsed(ms) {
@@ -419,24 +432,29 @@
     if (m < 60) return `${m}m ${s % 60}s`;
     const h = Math.floor(m / 60);
     if (h < 24) return `${h}h ${m % 60}m`;
-    const d = Math.floor(h / 24);
-    if (d < 365) return `${d}d ${h % 24}h`;
-    return fmtDur(ms / 3600000);
+    return `${Math.floor(h / 24)}d ${h % 24}h`;
   }
 
-  function fmtPct(p) {
-    if (p <= 0)   return '0%';
-    if (p >= 100) return '100%';
-    if (p >= 1)    return p.toFixed(2) + '%';
-    if (p >= 0.01) return p.toFixed(4) + '%';
-    return p.toPrecision(2) + '%';
-  }
+  // State
+  let walk = readWalk();
+  let selectedId = CATALOG[0].id;
+  let timer = null;
 
-  const nameOf = id => (CATALOG.find(o => o.id === id) || {}).name || 'somewhere';
+  // DOM Elements
+  const $ = id => document.getElementById(id);
+  const listEl = $('list');
+  const walkViewEl = $('walkView');
+  
+  const visName = $('visName'), visDist = $('visDist'), visDesc = $('visDesc');
+  const startBtn = $('startBtn');
+  const scaleText = $('scaleText'), scaleLine = $('scaleLine');
 
-  /* =========================================================
-     Persistence
-     ========================================================= */
+  const wEmoji = $('wEmoji'), wTitle = $('wTitle'),
+        wPct = $('wPct'), wFill = $('wFill'),
+        wWalked = $('wWalked'), wLeft = $('wLeft'),
+        wElapsed = $('wElapsed'), wEta = $('wEta');
+
+  // Storage
   function readWalk() {
     try {
       const raw = localStorage.getItem(KEY);
@@ -447,287 +465,409 @@
       return w;
     } catch (e) { return null; }
   }
-
   function writeWalk(w) {
     try {
       if (w) localStorage.setItem(KEY, JSON.stringify(w));
-      else   localStorage.removeItem(KEY);
+      else localStorage.removeItem(KEY);
     } catch (e) {}
   }
 
-  /* =========================================================
-     State & DOM
-     ========================================================= */
-  let walk        = readWalk();
-  let selectedId  = CATALOG[0].id;   // currently highlighted in the visual
-  let timer       = null;
+  // ==========================================
+  // CANVAS ENGINE
+  // ==========================================
+  const canvas = $('space-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Base scale: 1 pixel = 1,000 km (this makes Earth ~12.7 pixels at zoom 1)
+  const BASE_KM_PER_PX = 1000;
 
-  const $ = id => document.getElementById(id);
+  let cam = {
+    x: 0,
+    y: 0,
+    zoom: 1,
+    isDragging: false,
+    lastX: 0,
+    lastY: 0
+  };
 
-  const listEl      = $('list');
-  const visualEl    = $('visual');
-  const walkViewEl  = $('walkView');
-  const bannerEl    = $('banner');
-  const bannerDest  = $('bannerDest');
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    draw();
+  }
 
-  const dotLine     = $('dotLine');
-  const objectNode  = $('objectNode');
-  const visEmoji    = $('visEmoji');
-  const visName     = $('visName');
-  const visSub      = $('visSub');
-  const distLabel   = $('distLabel');
-  const distValue   = $('distValue');
-  const distSmall   = $('distSmall');
-  const startBtn    = $('startBtn');
+  // Convert km to canvas coordinates (relative to center)
+  function kmToPx(km, zoom = cam.zoom) {
+    return (km / BASE_KM_PER_PX) * zoom;
+  }
 
-  const wEmoji = $('wEmoji'), wTitle = $('wTitle'), wSub = $('wSub'),
-        wPct = $('wPct'), wFill = $('wFill'), wWalker = $('wWalker'),
-        wWalked = $('wWalked'), wLeft = $('wLeft'), wElapsed = $('wElapsed'),
-        wEta = $('wEta'), wArrival = $('wArrival');
+  function draw() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Starfield (drawn in screen space, independent of camera)
+    drawStars(w, h);
 
-  /* =========================================================
-     Starfield
-     ========================================================= */
-  (function stars() {
-    const sky = $('sky');
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < 180; i++) {
-      const s = document.createElement('div');
-      s.className = 'star';
-      const size = Math.random() < 0.86 ? 1 : 2;
-      s.style.width = s.style.height = size + 'px';
-      s.style.left = (Math.random() * 100) + '%';
-      s.style.top  = (Math.random() * 100) + '%';
-      s.style.opacity = (0.2 + Math.random() * 0.75).toFixed(2);
-      s.style.animationDelay = (Math.random() * 6).toFixed(2) + 's';
-      s.style.animationDuration = (3 + Math.random() * 5).toFixed(2) + 's';
-      frag.appendChild(s);
+    ctx.save();
+    // Move origin to center of screen + apply pan
+    ctx.translate(w / 2 + cam.x, h / 2 + cam.y);
+    ctx.scale(cam.zoom, cam.zoom);
+
+    // Apply camera transform to line width
+    const lineWidth = 1 / cam.zoom;
+
+    const target = CATALOG.find(o => o.id === selectedId);
+    if (!target) { ctx.restore(); return; }
+
+    // Draw Dotted Line
+    const distPx = target.dist / BASE_KM_PER_PX;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+    ctx.lineWidth = Math.max(1, lineWidth * 2);
+    ctx.setLineDash([4 * lineWidth, 8 * lineWidth]);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -distPx);
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset
+
+    // Draw Earth (center at 0,0)
+    drawPlanet(0, 0, 12742, 'Earth', '#4fa8ff', lineWidth);
+    
+    // Draw Target
+    drawPlanet(0, -distPx, target.diam, target.name, '#00e5ff', lineWidth);
+
+    // Draw distance text on the line
+    if (distPx > 100 / cam.zoom) {
+      ctx.save();
+      ctx.translate(0, -distPx / 2);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = `${14 / cam.zoom}px monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      // Background box
+      const text = fmtKm(target.dist);
+      const textWidth = ctx.measureText(text).width;
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(10 / cam.zoom, -8 / cam.zoom, textWidth + 8 / cam.zoom, 16 / cam.zoom);
+      ctx.fillStyle = '#00e5ff';
+      ctx.fillText(text, 14 / cam.zoom, 0);
+      ctx.restore();
     }
-    sky.appendChild(frag);
-  })();
 
-  /* =========================================================
-     Build the destination list
-     ========================================================= */
+    ctx.restore();
+
+    updateScaleHUD(w);
+  }
+
+  function drawPlanet(x, y, diamKm, name, color, lineWidth) {
+    const rPx = (diamKm / 2) / BASE_KM_PER_PX;
+    
+    // Draw actual physical sphere (if large enough)
+    if (rPx * cam.zoom > 1.5) {
+      ctx.beginPath();
+      ctx.arc(x, y, rPx, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      
+      // Glow
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth * 2;
+      ctx.stroke();
+    } else {
+      // If too small, draw a marker so it doesn't disappear
+      ctx.beginPath();
+      ctx.arc(x, y, 2 / cam.zoom, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      
+      // Crosshair
+      const arm = 5 / cam.zoom;
+      ctx.beginPath();
+      ctx.moveTo(x - arm, y); ctx.lineTo(x + arm, y);
+      ctx.moveTo(x, y - arm); ctx.lineTo(x, y + arm);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+
+    // Always draw text label offset from center
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#fff';
+    ctx.font = `${12 / cam.zoom}px monospace`;
+    ctx.textAlign = 'center';
+    const offset = Math.max(10 / cam.zoom, rPx + 10 / cam.zoom);
+    ctx.fillText(name, 0, offset);
+    ctx.restore();
+  }
+
+  let starCache = [];
+  function drawStars(w, h) {
+    if (starCache.length === 0) {
+      for (let i = 0; i < 200; i++) {
+        starCache.push({
+          x: Math.random(),
+          y: Math.random(),
+          s: Math.random() * 1.5 + 0.5,
+          o: Math.random() * 0.5 + 0.1
+        });
+      }
+    }
+    ctx.fillStyle = '#fff';
+    starCache.forEach(s => {
+      ctx.globalAlpha = s.o;
+      ctx.fillRect(s.x * w, s.y * h, s.s, s.s);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function updateScaleHUD(w) {
+    // We want the scale line to be roughly 150 pixels wide
+    const targetPx = 150;
+    
+    // How many km is 150 pixels?
+    const kmFor150px = (targetPx / cam.zoom) * BASE_KM_PER_PX;
+    
+    // Round to nearest power of 10 or 'nice' number (1, 2, 5 sequence)
+    const magnitude = Math.pow(10, Math.floor(Math.log10(kmFor150px)));
+    const normalized = kmFor150px / magnitude;
+    
+    let niceMultiplier;
+    if (normalized < 1.5) niceMultiplier = 1;
+    else if (normalized < 3.5) niceMultiplier = 2;
+    else if (normalized < 7.5) niceMultiplier = 5;
+    else niceMultiplier = 10;
+    
+    const niceKm = magnitude * niceMultiplier;
+    
+    // How many pixels is that nice number?
+    const nicePx = (niceKm / BASE_KM_PER_PX) * cam.zoom;
+    
+    scaleLine.style.width = `${nicePx}px`;
+    if (niceKm >= 1e6) {
+      scaleText.textContent = `${nf1.format(niceKm / 1e6)} million km`;
+    } else {
+      scaleText.textContent = `${nf.format(niceKm)} km`;
+    }
+    
+    // Add Earth diameter reference if scale is close
+    if (niceKm < 50000) {
+       scaleText.textContent += ` (Earth is ${nf.format(12742)} km)`;
+    }
+  }
+
+  // ==========================================
+  // INTERACTIVITY (Pan & Zoom)
+  // ==========================================
+  
+  canvas.addEventListener('pointerdown', e => {
+    cam.isDragging = true;
+    cam.lastX = e.clientX;
+    cam.lastY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!cam.isDragging) return;
+    const dx = e.clientX - cam.lastX;
+    const dy = e.clientY - cam.lastY;
+    cam.x += dx;
+    cam.y += dy;
+    cam.lastX = e.clientX;
+    cam.lastY = e.clientY;
+    draw();
+  });
+
+  canvas.addEventListener('pointerup', e => {
+    cam.isDragging = false;
+    canvas.releasePointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const zoomIntensity = 0.002;
+    const wheel = e.deltaY < 0 ? 1 : -1;
+    const zoomFactor = Math.exp(wheel * zoomIntensity * 10);
+    
+    // Zoom towards mouse pointer
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left - rect.width / 2;
+    const mouseY = e.clientY - rect.top - rect.height / 2;
+    
+    // Adjust cam position so mouse stays on same world coordinate
+    cam.x -= mouseX * (zoomFactor - 1);
+    cam.y -= mouseY * (zoomFactor - 1);
+    
+    cam.zoom *= zoomFactor;
+    
+    // Clamp zoom (min 0.001, max 10000)
+    cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
+    
+    draw();
+  }, { passive: false });
+
+  // Touch pinch-to-zoom
+  let touchDist = 0;
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      touchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const newDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = newDist / touchDist;
+      cam.zoom *= factor;
+      cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
+      touchDist = newDist;
+      draw();
+    }
+  }, { passive: false });
+
+  // ==========================================
+  // UI LOGIC
+  // ==========================================
+
   function buildList() {
     listEl.innerHTML = '';
     CATALOG.forEach(o => {
       const li = document.createElement('li');
-      li.className = 'item';
-      li.dataset.id = o.id;
-
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'item-head';
+      btn.className = 'item-btn';
       btn.innerHTML = `
-        <span class="emoji">${o.emoji}</span>
-        <span class="name">${o.name}</span>
-        <span class="dist">${fmtKm(o.km)}</span>`;
-
+        <span style="display:flex; gap:12px; align-items:center;">
+          <span class="item-symbol">${o.symbol}</span>
+          <span>${o.name}</span>
+        </span>
+        <span>${fmtKm(o.dist)}</span>
+      `;
       btn.addEventListener('click', () => selectObject(o.id));
       li.appendChild(btn);
       listEl.appendChild(li);
     });
   }
 
-  /* =========================================================
-     Selection & visualisation
-     ========================================================= */
   function selectObject(id) {
     selectedId = id;
     const o = CATALOG.find(x => x.id === id);
-    if (!o) return;
+    
+    // Update active state in list
+    document.querySelectorAll('.item-btn').forEach(el => el.classList.remove('active'));
+    // Find the button corresponding to this ID (safely)
+    const btns = Array.from(document.querySelectorAll('.item-btn'));
+    const targetBtn = btns.find(b => b.textContent.includes(o.name));
+    if (targetBtn) targetBtn.classList.add('active');
 
-    // highlight in list
-    document.querySelectorAll('.item').forEach(el =>
-      el.classList.toggle('active', el.dataset.id === id));
+    // Update HUD
+    visName.textContent = o.name;
+    visDist.textContent = fmtKm(o.dist) + ' away';
+    visDesc.textContent = o.desc;
+    
+    startBtn.textContent = `Initiate Walk to ${o.name}`;
 
-    // show visual panel, hide walk panel
-    visualEl.classList.remove('hidden');
+    // Auto-zoom to fit both objects
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const maxCanvasDist = Math.min(rect.width, rect.height) * 0.8; // 80% of screen
+    
+    // Calculate zoom so the target distance fits in maxCanvasDist
+    // distPx = (o.dist / BASE_KM_PER_PX) * zoom
+    // zoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist
+    const newZoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist;
+    
+    cam.zoom = newZoom;
+    cam.x = 0;
+    cam.y = rect.height * 0.1; // Shift down slightly so Earth is visible at bottom
+    
+    draw();
     walkViewEl.classList.add('hidden');
-    bannerEl.classList.add('hidden');
-
-    // fill node info
-    visEmoji.textContent = o.emoji;
-    visName.textContent  = o.name;
-    visSub.textContent   = `about ${fmtDur(o.km / PACE)} on foot`;
-
-    // distance label
-    distValue.textContent = fmtKm(o.km);
-    const ly = fmtLy(o.km);
-    distSmall.textContent = ly ? ly : 'very far away';
-
-    // start button label
-    startBtn.textContent = `Start walking to ${o.name} →`;
-
-    // draw the dotted line after layout settles
-    requestAnimationFrame(drawLine);
   }
 
-  function drawLine() {
-    const svg = $('lineSvg');
-    const svgRect = svg.getBoundingClientRect();
-    const earthRect = document.querySelector('.earth-node').getBoundingClientRect();
-    const objRect = objectNode.getBoundingClientRect();
-
-    // centre of earth
-    const ex = earthRect.left + earthRect.width / 2 - svgRect.left;
-    const ey = earthRect.top + earthRect.height / 2 - svgRect.top;
-
-    // centre of object node
-    const ox = objRect.left + objRect.width / 2 - svgRect.left;
-    const oy = objRect.top + objRect.height / 2 - svgRect.top;
-
-    dotLine.setAttribute('x1', ex);
-    dotLine.setAttribute('y1', ey);
-    dotLine.setAttribute('x2', ox);
-    dotLine.setAttribute('y2', oy);
-
-    // position the distance label at the midpoint of the line
-    const mx = (ex + ox) / 2;
-    const my = (ey + oy) / 2;
-    distLabel.style.left = mx + 'px';
-    distLabel.style.top  = my + 'px';
-  }
-
-  // reposition object node based on panel size
-  function layoutObjectNode() {
-    const panel = visualEl.getBoundingClientRect();
-    if (panel.width === 0) return; // hidden
-    // place the object in the upper third of the panel, offset a little
-    objectNode.style.left = '50%';
-    objectNode.style.top  = '28%';
-  }
-
-  /* =========================================================
-     Views
-     ========================================================= */
-  function stopTimer() {
-    if (timer) { clearInterval(timer); timer = null; }
-  }
-
-  function showVisual() {
-    stopTimer();
-    walkViewEl.classList.add('hidden');
-    visualEl.classList.remove('hidden');
-    if (walk) {
-      bannerEl.classList.remove('hidden');
-      bannerDest.textContent = nameOf(walk.objectId);
-    } else {
-      bannerEl.classList.add('hidden');
-    }
-    layoutObjectNode();
-    requestAnimationFrame(drawLine);
-  }
-
-  function showWalk() {
-    if (!walk) return showVisual();
-
-    visualEl.classList.add('hidden');
-    bannerEl.classList.add('hidden');
-    walkViewEl.classList.remove('hidden');
-
-    const o = CATALOG.find(x => x.id === walk.objectId);
-    wEmoji.textContent = o.emoji;
-    wTitle.textContent = 'Walking to ' + o.name;
-    wSub.textContent   = `${fmtKm(o.km)} · ${PACE} km/h · no breaks`;
-
-    updateWalk();
-    stopTimer();
-    timer = setInterval(updateWalk, 1000);
-  }
-
-  function render() {
-    if (walk) showWalk();
-    else      showVisual();
-  }
-
-  /* =========================================================
-     The actual walking
-     ========================================================= */
   function updateWalk() {
     if (!walk) return;
     const o = CATALOG.find(x => x.id === walk.objectId);
     if (!o) { walk = null; writeWalk(null); return showVisual(); }
 
-    const pace     = walk.pace || PACE;
-    const total    = o.km;
-    const elapsed  = Math.max(0, Date.now() - walk.startedAt);
-    const walkedRaw = (elapsed / 3600000) * pace;
+    const elapsed = Math.max(0, Date.now() - walk.startedAt);
+    const walkedRaw = (elapsed / 3600000) * PACE;
+    const walked = Math.min(walkedRaw, o.dist);
+    const remaining = Math.max(0, o.dist - walkedRaw);
+    const pct = Math.min(100, (walkedRaw / o.dist) * 100);
+    const done = remaining <= 0;
 
-    const walked    = Math.min(walkedRaw, total);
-    const remaining = Math.max(0, total - walkedRaw);
-    const pct       = Math.min(100, (walkedRaw / total) * 100);
-    const done      = remaining <= 0;
-
-    wPct.textContent = done ? '100%' : fmtPct(pct);
+    wPct.textContent = done ? '100%' : pct.toFixed(4) + '%';
     wFill.style.width = pct + '%';
-    wFill.style.minWidth = pct > 0 ? '6px' : '0px';
-    wWalker.style.left = `calc(8px + (100% - 16px) * ${pct / 100})`;
-
-    wWalked.textContent  = fmtWalked(walked);
-    wLeft.textContent    = done ? '0 m' : fmtWalked(remaining);
+    
+    wWalked.textContent = fmtWalked(walked);
+    wLeft.textContent = done ? '0 km' : fmtWalked(remaining);
     wElapsed.textContent = fmtElapsed(elapsed);
-    wEta.textContent     = done ? 'Arrived 🎉' : fmtDur(remaining / pace);
-
-    if (done) {
-      wArrival.textContent = `You made it. Welcome to ${o.name}.`;
-    } else {
-      const msLeft = (remaining / pace) * 3600 * 1000;
-      const arrives = Date.now() + msLeft;
-      if (!isFinite(msLeft) || arrives > 8.64e15) {
-        wArrival.textContent = 'Estimated arrival: long after the Sun has burned out.';
-      } else {
-        const d = new Date(arrives);
-        wArrival.textContent = 'Estimated arrival: ' +
-          d.toLocaleDateString(undefined, { dateStyle: 'long' });
-      }
-    }
+    wEta.textContent = done ? 'Arrived 🎉' : fmtDur(remaining / PACE);
   }
 
-  /* =========================================================
-     Actions
-     ========================================================= */
-  function startWalk(id) {
-    if (walk && !confirm(`You're already walking to ${nameOf(walk.objectId)}.\n\nAbandon that walk and start a new one?`)) {
-      return;
-    }
-    walk = { objectId: id, startedAt: Date.now(), pace: PACE };
+  function showWalk() {
+    if (!walk) return showVisual();
+    
+    const o = CATALOG.find(x => x.id === walk.objectId);
+    wTitle.textContent = 'Walking to ' + o.name;
+    
+    updateWalk();
+    if (timer) clearInterval(timer);
+    timer = setInterval(updateWalk, 1000);
+    
+    walkViewEl.classList.remove('hidden');
+  }
+
+  function showVisual() {
+    if (timer) clearInterval(timer);
+    walkViewEl.classList.add('hidden');
+    document.getElementById('banner').classList.add('hidden');
+    draw();
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (walk && !confirm(`You're already walking to ${walk.objectId}.\n\nAbandon that walk?`)) return;
+    walk = { objectId: selectedId, startedAt: Date.now(), pace: PACE };
     writeWalk(walk);
     showWalk();
-  }
-
-  startBtn.addEventListener('click', () => startWalk(selectedId));
-
-  $('bannerResume').addEventListener('click', showWalk);
+  });
 
   $('wBrowse').addEventListener('click', showVisual);
 
   $('wAbandon').addEventListener('click', () => {
-    if (!confirm('Abandon this walk? All that progress will be lost.')) return;
+    if (!confirm('Abandon this walk?')) return;
     walk = null;
     writeWalk(null);
     showVisual();
   });
 
-  window.addEventListener('resize', () => {
-    layoutObjectNode();
-    drawLine();
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && walk) {
-      if (walkViewEl.classList.contains('hidden')) showVisual();
-      else updateWalk();
-    }
-  });
-
-  /* =========================================================
-     Go
-     ========================================================= */
+  // Init
+  window.addEventListener('resize', resize);
   buildList();
-  selectObject(selectedId);   // start with the Moon selected
-  render();
+  resize();
+  selectObject(selectedId);
+
+  // Check if there is an active walk
+  if (walk) {
+    document.getElementById('banner').classList.remove('hidden');
+    document.getElementById('bannerDest').textContent = CATALOG.find(x => x.id === walk.objectId).name;
+    document.getElementById('bannerResume').addEventListener('click', showWalk);
+    // Auto-select the target of the walk
+    selectObject(walk.objectId);
+  }
+
 })();
 </script>
 </body>
