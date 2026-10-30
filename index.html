@@ -7,18 +7,17 @@
 <style>
   :root {
     --bg: #000000;
-    --panel: rgba(4, 6, 10, 0.85);
-    --border: #1a2233;
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --accent: #00e5ff;
+    --panel: rgba(0, 0, 0, 0.85);
+    --border: #333333;
+    --text: #ffffff;
+    --text-dim: #888888;
     --font: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
   }
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    border-radius: 0; /* Strictly no rounded edges */
+    border-radius: 0;
   }
   body {
     background: var(--bg);
@@ -41,7 +40,7 @@
   @media (max-width: 768px) {
     #app {
       grid-template-columns: 1fr;
-      grid-template-rows: 200px 1fr;
+      grid-template-rows: 220px 1fr;
     }
   }
 
@@ -95,13 +94,13 @@
     transition: background 0.1s, color 0.1s;
   }
   .item-btn:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text);
   }
   .item-btn.active {
-    background: rgba(0, 229, 255, 0.05);
-    color: var(--accent);
-    border-left: 2px solid var(--accent);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    border-left: 2px solid var(--text);
     padding-left: 14px;
   }
   .item-symbol {
@@ -130,6 +129,7 @@
   .hud {
     position: absolute;
     pointer-events: none;
+    z-index: 5;
   }
   .hud * { pointer-events: auto; }
 
@@ -158,50 +158,27 @@
     align-self: flex-start;
   }
 
-  /* Info Panel (Bottom Right) */
-  #info-hud {
-    bottom: 24px;
-    right: 24px;
-    text-align: right;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 16px;
-    min-width: 240px;
-  }
-  .target-name {
-    font-size: 1.2rem;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-  }
-  .target-dist {
-    font-size: 0.9rem;
-    color: var(--accent);
-    margin-bottom: 12px;
-  }
-  .target-desc {
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    line-height: 1.4;
-    margin-bottom: 16px;
-  }
-  .btn {
+  /* GO Button (Bottom Center) */
+  #go-btn {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
     background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
+    border: 1px solid var(--text);
+    color: var(--text);
     font-family: var(--font);
-    font-size: 0.75rem;
-    padding: 8px 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 12px 48px;
     cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
     transition: all 0.2s;
-    width: 100%;
+    text-transform: uppercase;
   }
-  .btn:hover {
-    background: var(--accent);
-    color: #000;
+  #go-btn:hover {
+    background: var(--text);
+    color: var(--bg);
   }
 
   /* Top Banner */
@@ -220,7 +197,7 @@
   #banner button {
     background: none;
     border: none;
-    color: var(--accent);
+    color: var(--text);
     font-family: var(--font);
     font-size: 0.75rem;
     cursor: pointer;
@@ -232,7 +209,7 @@
   #walkView {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.95);
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -252,7 +229,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 24px;
-    color: var(--accent);
+    color: var(--text);
   }
   .progress-bar {
     width: 100%;
@@ -263,7 +240,7 @@
   }
   .progress-fill {
     height: 100%;
-    background: var(--accent);
+    background: var(--text);
     width: 0%;
     transition: width 0.5s linear;
   }
@@ -298,13 +275,22 @@
     display: flex;
     gap: 16px;
   }
-  .btn-ghost {
-    border-color: #ff4444;
-    color: #ff4444;
+  .btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--text);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.75rem;
+    padding: 12px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
   }
-  .btn-ghost:hover {
-    background: #ff4444;
-    color: #000;
+  .btn:hover {
+    background: var(--text);
+    color: var(--bg);
   }
 </style>
 </head>
@@ -332,12 +318,7 @@
       <div class="scale-line" id="scaleLine"></div>
     </div>
 
-    <div id="info-hud" class="hud">
-      <div class="target-name" id="visName">The Moon</div>
-      <div class="target-dist" id="visDist">384,400 km</div>
-      <div class="target-desc" id="visDesc"></div>
-      <button class="btn" id="startBtn" type="button">Initiate Walk</button>
-    </div>
+    <button id="go-btn" class="hidden" type="button">GO</button>
 
     <div id="walkView" class="hidden">
       <div class="walk-container">
@@ -369,7 +350,7 @@
 
         <div class="walk-actions">
           <button class="btn" id="wBrowse" type="button">Back to Map</button>
-          <button class="btn btn-ghost" id="wAbandon" type="button">Abandon</button>
+          <button class="btn" id="wAbandon" type="button">Abandon</button>
         </div>
       </div>
     </div>
@@ -444,13 +425,10 @@
   const $ = id => document.getElementById(id);
   const listEl = $('list');
   const walkViewEl = $('walkView');
-  
-  const visName = $('visName'), visDist = $('visDist'), visDesc = $('visDesc');
-  const startBtn = $('startBtn');
+  const goBtn = $('go-btn');
   const scaleText = $('scaleText'), scaleLine = $('scaleLine');
 
-  const wEmoji = $('wEmoji'), wTitle = $('wTitle'),
-        wPct = $('wPct'), wFill = $('wFill'),
+  const wTitle = $('wTitle'), wPct = $('wPct'), wFill = $('wFill'),
         wWalked = $('wWalked'), wLeft = $('wLeft'),
         wElapsed = $('wElapsed'), wEta = $('wEta');
 
@@ -478,7 +456,7 @@
   const canvas = $('space-canvas');
   const ctx = canvas.getContext('2d');
   
-  // Base scale: 1 pixel = 1,000 km (this makes Earth ~12.7 pixels at zoom 1)
+  // Base scale: 1 pixel = 1,000 km
   const BASE_KM_PER_PX = 1000;
 
   let cam = {
@@ -499,94 +477,74 @@
     draw();
   }
 
-  // Convert km to canvas coordinates (relative to center)
-  function kmToPx(km, zoom = cam.zoom) {
-    return (km / BASE_KM_PER_PX) * zoom;
-  }
-
   function draw() {
     const rect = canvas.parentElement.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
     
     ctx.clearRect(0, 0, w, h);
-    
-    // Starfield (drawn in screen space, independent of camera)
     drawStars(w, h);
 
     ctx.save();
-    // Move origin to center of screen + apply pan
     ctx.translate(w / 2 + cam.x, h / 2 + cam.y);
     ctx.scale(cam.zoom, cam.zoom);
 
-    // Apply camera transform to line width
     const lineWidth = 1 / cam.zoom;
-
     const target = CATALOG.find(o => o.id === selectedId);
     if (!target) { ctx.restore(); return; }
 
     // Draw Dotted Line
     const distPx = target.dist / BASE_KM_PER_PX;
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
-    ctx.lineWidth = Math.max(1, lineWidth * 2);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = Math.max(1, lineWidth * 1.5);
     ctx.setLineDash([4 * lineWidth, 8 * lineWidth]);
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -distPx);
     ctx.stroke();
-    ctx.setLineDash([]); // Reset
+    ctx.setLineDash([]); 
 
-    // Draw Earth (center at 0,0)
-    drawPlanet(0, 0, 12742, 'Earth', '#4fa8ff', lineWidth);
+    // Draw Earth
+    drawPlanet(0, 0, 12742, 'Earth', '#ffffff', lineWidth);
     
     // Draw Target
-    drawPlanet(0, -distPx, target.diam, target.name, '#00e5ff', lineWidth);
+    drawPlanet(0, -distPx, target.diam, target.name, '#ffffff', lineWidth);
 
-    // Draw distance text on the line
-    if (distPx > 100 / cam.zoom) {
+    // Distance text
+    if (distPx * cam.zoom > 100) {
       ctx.save();
       ctx.translate(0, -distPx / 2);
-      ctx.fillStyle = '#e2e8f0';
+      ctx.fillStyle = '#000';
+      const text = fmtKm(target.dist);
       ctx.font = `${14 / cam.zoom}px monospace`;
+      const textWidth = ctx.measureText(text).width;
+      ctx.fillRect(10 / cam.zoom, -10 / cam.zoom, textWidth + 8 / cam.zoom, 20 / cam.zoom);
+      ctx.fillStyle = '#fff';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      // Background box
-      const text = fmtKm(target.dist);
-      const textWidth = ctx.measureText(text).width;
-      ctx.fillStyle = 'rgba(0,0,0,0.8)';
-      ctx.fillRect(10 / cam.zoom, -8 / cam.zoom, textWidth + 8 / cam.zoom, 16 / cam.zoom);
-      ctx.fillStyle = '#00e5ff';
       ctx.fillText(text, 14 / cam.zoom, 0);
       ctx.restore();
     }
 
     ctx.restore();
-
     updateScaleHUD(w);
   }
 
   function drawPlanet(x, y, diamKm, name, color, lineWidth) {
     const rPx = (diamKm / 2) / BASE_KM_PER_PX;
     
-    // Draw actual physical sphere (if large enough)
     if (rPx * cam.zoom > 1.5) {
       ctx.beginPath();
       ctx.arc(x, y, rPx, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      
-      // Glow
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth * 2;
-      ctx.stroke();
     } else {
-      // If too small, draw a marker so it doesn't disappear
+      // Marker for tiny planets
       ctx.beginPath();
       ctx.arc(x, y, 2 / cam.zoom, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
       
-      // Crosshair
       const arm = 5 / cam.zoom;
       ctx.beginPath();
       ctx.moveTo(x - arm, y); ctx.lineTo(x + arm, y);
@@ -596,7 +554,7 @@
       ctx.stroke();
     }
 
-    // Always draw text label offset from center
+    // Text Label
     ctx.save();
     ctx.translate(x, y);
     ctx.fillStyle = '#fff';
@@ -610,12 +568,12 @@
   let starCache = [];
   function drawStars(w, h) {
     if (starCache.length === 0) {
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 150; i++) {
         starCache.push({
           x: Math.random(),
           y: Math.random(),
           s: Math.random() * 1.5 + 0.5,
-          o: Math.random() * 0.5 + 0.1
+          o: Math.random() * 0.3 + 0.1
         });
       }
     }
@@ -628,13 +586,8 @@
   }
 
   function updateScaleHUD(w) {
-    // We want the scale line to be roughly 150 pixels wide
     const targetPx = 150;
-    
-    // How many km is 150 pixels?
     const kmFor150px = (targetPx / cam.zoom) * BASE_KM_PER_PX;
-    
-    // Round to nearest power of 10 or 'nice' number (1, 2, 5 sequence)
     const magnitude = Math.pow(10, Math.floor(Math.log10(kmFor150px)));
     const normalized = kmFor150px / magnitude;
     
@@ -645,8 +598,6 @@
     else niceMultiplier = 10;
     
     const niceKm = magnitude * niceMultiplier;
-    
-    // How many pixels is that nice number?
     const nicePx = (niceKm / BASE_KM_PER_PX) * cam.zoom;
     
     scaleLine.style.width = `${nicePx}px`;
@@ -655,17 +606,11 @@
     } else {
       scaleText.textContent = `${nf.format(niceKm)} km`;
     }
-    
-    // Add Earth diameter reference if scale is close
-    if (niceKm < 50000) {
-       scaleText.textContent += ` (Earth is ${nf.format(12742)} km)`;
-    }
   }
 
   // ==========================================
-  // INTERACTIVITY (Pan & Zoom)
+  // INTERACTIVITY
   // ==========================================
-  
   canvas.addEventListener('pointerdown', e => {
     cam.isDragging = true;
     cam.lastX = e.clientX;
@@ -675,10 +620,8 @@
 
   canvas.addEventListener('pointermove', e => {
     if (!cam.isDragging) return;
-    const dx = e.clientX - cam.lastX;
-    const dy = e.clientY - cam.lastY;
-    cam.x += dx;
-    cam.y += dy;
+    cam.x += e.clientX - cam.lastX;
+    cam.y += e.clientY - cam.lastY;
     cam.lastX = e.clientX;
     cam.lastY = e.clientY;
     draw();
@@ -691,28 +634,20 @@
 
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
-    const zoomIntensity = 0.002;
-    const wheel = e.deltaY < 0 ? 1 : -1;
-    const zoomFactor = Math.exp(wheel * zoomIntensity * 10);
+    const zoomFactor = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.2);
     
-    // Zoom towards mouse pointer
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left - rect.width / 2;
     const mouseY = e.clientY - rect.top - rect.height / 2;
     
-    // Adjust cam position so mouse stays on same world coordinate
     cam.x -= mouseX * (zoomFactor - 1);
     cam.y -= mouseY * (zoomFactor - 1);
-    
     cam.zoom *= zoomFactor;
-    
-    // Clamp zoom (min 0.001, max 10000)
     cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
-    
     draw();
   }, { passive: false });
 
-  // Touch pinch-to-zoom
+  // Pinch to zoom
   let touchDist = 0;
   canvas.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
@@ -730,8 +665,7 @@
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-      const factor = newDist / touchDist;
-      cam.zoom *= factor;
+      cam.zoom *= (newDist / touchDist);
       cam.zoom = Math.max(0.001, Math.min(10000, cam.zoom));
       touchDist = newDist;
       draw();
@@ -767,30 +701,22 @@
     
     // Update active state in list
     document.querySelectorAll('.item-btn').forEach(el => el.classList.remove('active'));
-    // Find the button corresponding to this ID (safely)
     const btns = Array.from(document.querySelectorAll('.item-btn'));
     const targetBtn = btns.find(b => b.textContent.includes(o.name));
     if (targetBtn) targetBtn.classList.add('active');
 
-    // Update HUD
-    visName.textContent = o.name;
-    visDist.textContent = fmtKm(o.dist) + ' away';
-    visDesc.textContent = o.desc;
-    
-    startBtn.textContent = `Initiate Walk to ${o.name}`;
+    // Show GO button
+    goBtn.classList.remove('hidden');
+    goBtn.textContent = 'GO';
 
     // Auto-zoom to fit both objects
     const rect = canvas.parentElement.getBoundingClientRect();
-    const maxCanvasDist = Math.min(rect.width, rect.height) * 0.8; // 80% of screen
-    
-    // Calculate zoom so the target distance fits in maxCanvasDist
-    // distPx = (o.dist / BASE_KM_PER_PX) * zoom
-    // zoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist
+    const maxCanvasDist = Math.min(rect.width, rect.height) * 0.8; 
     const newZoom = (maxCanvasDist * BASE_KM_PER_PX) / o.dist;
     
     cam.zoom = newZoom;
     cam.x = 0;
-    cam.y = rect.height * 0.1; // Shift down slightly so Earth is visible at bottom
+    cam.y = rect.height * 0.15; // Push Earth towards the bottom
     
     draw();
     walkViewEl.classList.add('hidden');
@@ -828,16 +754,18 @@
     timer = setInterval(updateWalk, 1000);
     
     walkViewEl.classList.remove('hidden');
+    goBtn.classList.add('hidden');
   }
 
   function showVisual() {
     if (timer) clearInterval(timer);
     walkViewEl.classList.add('hidden');
     document.getElementById('banner').classList.add('hidden');
+    goBtn.classList.remove('hidden');
     draw();
   }
 
-  startBtn.addEventListener('click', () => {
+  goBtn.addEventListener('click', () => {
     if (walk && !confirm(`You're already walking to ${walk.objectId}.\n\nAbandon that walk?`)) return;
     walk = { objectId: selectedId, startedAt: Date.now(), pace: PACE };
     writeWalk(walk);
@@ -864,7 +792,6 @@
     document.getElementById('banner').classList.remove('hidden');
     document.getElementById('bannerDest').textContent = CATALOG.find(x => x.id === walk.objectId).name;
     document.getElementById('bannerResume').addEventListener('click', showWalk);
-    // Auto-select the target of the walk
     selectObject(walk.objectId);
   }
 
